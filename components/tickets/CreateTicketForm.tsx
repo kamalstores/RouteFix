@@ -23,6 +23,7 @@ export default function CreateTicketForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [createdTicket, setCreatedTicket] = useState<any>(null);
+  const [error, setError] = useState('');
   const router = useRouter();
   const { data: session } = useSession();
   const [images, setImages] = useState<File[]>([]);
@@ -69,6 +70,7 @@ export default function CreateTicketForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
 
     try {
       // Prepare the payload for the API
@@ -90,8 +92,8 @@ export default function CreateTicketForm() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create ticket');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to create ticket (${response.status})`);
       }
 
       const result = await response.json();
@@ -109,8 +111,7 @@ export default function CreateTicketForm() {
     } catch (error) {
       console.error('Error creating ticket:', error);
       setIsSubmitting(false);
-      // You could add error state handling here
-      alert('Failed to create ticket. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to create ticket. Please try again.');
     }
   };
 
@@ -177,6 +178,11 @@ export default function CreateTicketForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           {/* QR Code Scanner */}
           <div className="space-y-2">
             <Label>Asset Identification (Optional)</Label>

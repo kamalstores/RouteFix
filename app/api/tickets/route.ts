@@ -70,7 +70,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Create ticket error:', error);
     return NextResponse.json(
-      { error: 'Failed to create ticket' },
+      {
+        error: process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.message
+          : 'Failed to create ticket'
+      },
       { status: 500 }
     );
   }
